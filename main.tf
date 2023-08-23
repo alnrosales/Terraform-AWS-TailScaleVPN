@@ -101,7 +101,7 @@ resource "aws_security_group" "vpn_access" {
 
 resource "aws_launch_configuration" "spot_launch_config" {
   name_prefix   = "spot-launch-config-"
-  image_id      = "ami-04598ac8fdb4a0b80"
+  image_id      = "ami-xxx"
   instance_type = "t3a.micro"
   spot_price    = "0.0035"
 
@@ -132,7 +132,7 @@ resource "aws_autoscaling_group" "spot_asg" {
 
 resource "aws_launch_configuration" "spot_launch_config2" {
   name_prefix   = "spot-launch-config2"
-  image_id      = "ami-0d918d0cdf11f51a7"
+  image_id      = "ami-xxx"
   instance_type = "t3a.micro"
   spot_price    = "0.0035"
 
