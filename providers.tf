@@ -9,8 +9,8 @@ terraform {
 
 provider "aws" {
   region                   = "us-west-1"
-  shared_credentials_files = ["$HOME/.aws/credentials"]
-
+  shared_credentials_files = ["~/.aws/cred_alros"]
+  profile                  = "alros"
 
 }
 
