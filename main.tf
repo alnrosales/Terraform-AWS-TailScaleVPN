@@ -23,11 +23,6 @@ resource "aws_route_table" "tf_route_table" {
     gateway_id = aws_internet_gateway.tf_igw.id
   }
 
-  route {
-    ipv6_cidr_block = "::/0"
-    gateway_id      = aws_internet_gateway.tf_igw.id
-  }
-
   tags = {
     Name = "tf_route_table"
   }
@@ -65,6 +60,31 @@ resource "aws_route_table_association" "b" {
   route_table_id = aws_route_table.tf_route_table.id
 }
 
+resource "aws_security_group" "allow_ssh" {
+  name        = "allow_ssh"
+  description = "Allow SSH inbound traffic"
+  vpc_id      = aws_vpc.tf_vpc.id
+
+  ingress {
+    description = "ssh to public"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "allow_ssh"
+  }
+}
+
 resource "aws_launch_template" "vpn1" {
   name                                 = "vpn1"
   image_id                             = data.aws_ami.server_ami.id
@@ -80,12 +100,22 @@ resource "aws_launch_template" "vpn1" {
     }
   }
 
+  network_interfaces {
+    associate_public_ip_address = true
+    subnet_id                   = aws_subnet.tf_subnet-1.id
+    security_groups             = [aws_security_group.allow_ssh.id]
+  }
+
+  iam_instance_profile {
+    name = "AmazonEC2RolesforSSM"
+  }
+
   placement {
     availability_zone = "us-west-1a"
   }
 
   user_data = <<-EOF
-    IyEvYmluL2Jhc2gKZG5mIHVwZGF0ZSAteQpjdXJsIC1mc1NMIGh0dHBzOi8vdGFpbHNjYWxlLmNvbS9pbnN0YWxsLnNoIHwgc2gKZWNobyAnbmV0LmlwdjQuaXBfZm9yd2FyZCA9IDEnIHwgc3VkbyB0ZWUgLWEgL2V0Yy9zeXNjdGwuZC85OS10YWlsc2NhbGUuY29uZgpzdWRvIHN5c2N0bCAtcCAvZXRjL3N5c2N0bC5kLzk5LXRhaWxzY2FsZS5jb25mCnN1ZG8gdGFpbHNjYWxlIHVwIC0tYXV0aGtleT10c2tleS1hdXRoLWtqSnRFVjNDTlRSTC1EeUp5enB3MkpmZ3NGU2VlbWVDM2Znb0pqdnhLRVllZiAtLWhvc3RuYW1lPXVzLXdlc3QtdnBuLTEgLS1zc2ggLS1hZHZlcnRpc2UtZXhpdC1ub2RlIC0tYWNjZXB0LXJvdXRlcw==
+    IyEvYmluL2Jhc2gKZG5mIHVwZGF0ZSAteQpkbmYgaW5zdGFsbCBhd3NjbGkgLXkKY3VybCAtZnNTTCBodHRwczovL3RhaWxzY2FsZS5jb20vaW5zdGFsbC5zaCB8IHNoCmVjaG8gJ25ldC5pcHY0LmlwX2ZvcndhcmQgPSAxJyB8IHN1ZG8gdGVlIC1hIC9ldGMvc3lzY3RsLmQvOTktdGFpbHNjYWxlLmNvbmYKc3VkbyBzeXNjdGwgLXAgL2V0Yy9zeXNjdGwuZC85OS10YWlsc2NhbGUuY29uZgpzdWRvIHRhaWxzY2FsZSB1cCAtLWF1dGhrZXk9JChhd3Mgc3NtIGdldC1wYXJhbWV0ZXIgLS1uYW1lIFZQTjEgLS13aXRoLWRlY3J5cHRpb24gLS1xdWVyeSAiUGFyYW1ldGVyLlZhbHVlIiAtLW91dHB1dCB0ZXh0KSAtLWhvc3RuYW1lPXVzLXdlc3QtdnBuLTEgLS1zc2ggLS1hZHZlcnRpc2UtZXhpdC1ub2RlIC0tYWNjZXB0LXJvdXRlcw==
     EOF
 
 }
@@ -101,20 +131,6 @@ resource "aws_autoscaling_group" "vpn1" {
     id      = aws_launch_template.vpn1.id
     version = "$Latest"
   }
-
-  tag {
-    key                 = "unsa"
-    value               = "mani"
-    propagate_at_launch = true
-  }
-
-  instance_refresh {
-    strategy = "Rolling"
-    preferences {
-      min_healthy_percentage = 50
-    }
-    triggers = ["tag"]
-  }
 }
 
 resource "aws_launch_template" "vpn2" {
@@ -127,9 +143,19 @@ resource "aws_launch_template" "vpn2" {
   instance_market_options {
     market_type = "spot"
     spot_options {
-      max_price          = "0.0036"
+      max_price          = "0.0037"
       spot_instance_type = "one-time"
     }
+  }
+
+  iam_instance_profile {
+    name = "AmazonEC2RolesforSSM"
+  }
+
+  network_interfaces {
+    associate_public_ip_address = true
+    subnet_id                   = aws_subnet.tf_subnet-2.id
+    security_groups             = [aws_security_group.allow_ssh.id]
   }
 
   placement {
@@ -137,7 +163,7 @@ resource "aws_launch_template" "vpn2" {
   }
 
   user_data = <<-EOF
-    IyEvYmluL2Jhc2gKZG5mIHVwZGF0ZSAteQpjdXJsIC1mc1NMIGh0dHBzOi8vdGFpbHNjYWxlLmNvbS9pbnN0YWxsLnNoIHwgc2gKZWNobyAnbmV0LmlwdjQuaXBfZm9yd2FyZCA9IDEnIHwgc3VkbyB0ZWUgLWEgL2V0Yy9zeXNjdGwuZC85OS10YWlsc2NhbGUuY29uZgpzdWRvIHN5c2N0bCAtcCAvZXRjL3N5c2N0bC5kLzk5LXRhaWxzY2FsZS5jb25mCnN1ZG8gdGFpbHNjYWxlIHVwIC0tYXV0aGtleT10c2tleS1hdXRoLWtMdXgzSjdDTlRSTC1Uc3J1M1FTaUhiVEt6RThMdUdIdmFUNTRCZHM3WUdub1kgLS1ob3N0bmFtZT11cy13ZXN0LXZwbi0yIC0tc3NoIC0tYWR2ZXJ0aXNlLWV4aXQtbm9kZSAtLWFjY2VwdC1yb3V0ZXM=
+    IyEvYmluL2Jhc2gKZG5mIHVwZGF0ZSAteQpkbmYgaW5zdGFsbCBhd3NjbGkgLXkKY3VybCAtZnNTTCBodHRwczovL3RhaWxzY2FsZS5jb20vaW5zdGFsbC5zaCB8IHNoCmVjaG8gJ25ldC5pcHY0LmlwX2ZvcndhcmQgPSAxJyB8IHN1ZG8gdGVlIC1hIC9ldGMvc3lzY3RsLmQvOTktdGFpbHNjYWxlLmNvbmYKc3VkbyBzeXNjdGwgLXAgL2V0Yy9zeXNjdGwuZC85OS10YWlsc2NhbGUuY29uZgpzdWRvIHRhaWxzY2FsZSB1cCAtLWF1dGhrZXk9JChhd3Mgc3NtIGdldC1wYXJhbWV0ZXIgLS1uYW1lIFZQTjIgLS13aXRoLWRlY3J5cHRpb24gLS1xdWVyeSAiUGFyYW1ldGVyLlZhbHVlIiAtLW91dHB1dCB0ZXh0KSAtLWhvc3RuYW1lPXVzLXdlc3QtdnBuLTIgLS1zc2ggLS1hZHZlcnRpc2UtZXhpdC1ub2RlIC0tYWNjZXB0LXJvdXRlcw==
     EOF
 
 }
@@ -152,19 +178,5 @@ resource "aws_autoscaling_group" "vpn2" {
   launch_template {
     id      = aws_launch_template.vpn2.id
     version = "$Latest"
-  }
-
-  tag {
-    key                 = "unsa"
-    value               = "mani"
-    propagate_at_launch = true
-  }
-
-  instance_refresh {
-    strategy = "Rolling"
-    preferences {
-      min_healthy_percentage = 50
-    }
-    triggers = ["tag"]
   }
 }
