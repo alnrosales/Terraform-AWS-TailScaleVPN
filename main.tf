@@ -42,7 +42,7 @@ resource "aws_route_table" "tf_route_table" {
 
 resource "aws_subnet" "tf_subnet-1" {
   vpc_id                  = aws_vpc.tf_vpc.id
-  cidr_block              = "10.0.0.0/20"
+  cidr_block              = "10.0.0.0/24"
   map_public_ip_on_launch = "true"
   availability_zone       = "us-west-1b"
 
@@ -53,7 +53,7 @@ resource "aws_subnet" "tf_subnet-1" {
 
 resource "aws_subnet" "tf_subnet-2" {
   vpc_id                  = aws_vpc.tf_vpc.id
-  cidr_block              = "10.0.128.0/20"
+  cidr_block              = "10.0.128.0/24"
   map_public_ip_on_launch = "true"
   availability_zone       = "us-west-1c"
 
@@ -78,11 +78,11 @@ resource "aws_security_group" "allow_ssh" {
   vpc_id      = aws_vpc.tf_vpc.id
 
   ingress {
-    description = "ssh to public"
+    description = "ssh to main-server"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["52.9.85.20/32"]
   }
 
   egress {
