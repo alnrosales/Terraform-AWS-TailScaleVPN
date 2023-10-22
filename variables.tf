@@ -26,3 +26,7 @@ variable "tskey2" {
   type    = string
   default = "tskey-auth-xxx"
 }
+variable "price" {
+  type    = number
+  default = 0.0039
+}

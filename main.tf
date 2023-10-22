@@ -107,7 +107,7 @@ resource "aws_launch_template" "vpn1" {
   instance_market_options {
     market_type = "spot"
     spot_options {
-      max_price          = "0.0036"
+      max_price          = var.price
       spot_instance_type = "one-time"
     }
   }
@@ -153,7 +153,7 @@ resource "aws_launch_template" "vpn2" {
   instance_market_options {
     market_type = "spot"
     spot_options {
-      max_price          = "0.0037"
+      max_price          = var.price
       spot_instance_type = "one-time"
     }
   }
