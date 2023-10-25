@@ -1,3 +1,4 @@
+#SSH Public Key
 variable "key_code" {
   type    = string
   default = "tails_xxx"
