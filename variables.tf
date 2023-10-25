@@ -21,12 +21,14 @@ variable "userVPN2" {
 }
 variable "tskey1" {
   type    = string
-  default = "tskey-auth-xxx"
+  default = "tskey-auth-xxxx"
 }
 variable "tskey2" {
   type    = string
-  default = "tskey-auth-xxx"
+  default = "tskey-auth-xxxx"
 }
+# on the shell export TF_VAR_tskey*="tskey-auth-xxxx" 
+
 variable "price" {
   type    = number
   default = 0.0039
