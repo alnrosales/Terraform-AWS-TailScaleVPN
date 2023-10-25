@@ -6,6 +6,6 @@ data "aws_ami" "server_ami" {
   filter {
     name   = "name"
     #values = ["Fedora-Cloud-Base-38-*.x86_64-hvm-us-west-1-gp3-0"]
-    values = ["al2023-ami-minimal-*-kernel-*-x86_64]
+    values = ["al2023-ami-minimal-*-kernel-*-x86_64"]
   }
 }
